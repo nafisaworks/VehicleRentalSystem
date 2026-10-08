@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Vehicles</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<header>
+
+    <h1>My Vehicles</h1>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="customer-dashboard.html">Customer</a>
+        <a href="owner-dashboard.html">Owner</a>
+        <a href="driver-dashboard.html">Driver</a>
+    </nav>
+
+</header>
+
+
+<main>
+
+    <section class="dashboard">
+
+        <h2>My Listed Vehicles</h2>
+
+        <p class="dashboard-subtitle">
+            View the vehicles listed by the selected owner.
+        </p>
+
+
+        <!-- Owner Selection -->
+
+        <div class="owner-selector">
+
+            <label for="owner-select">
+                Select Owner
+            </label>
+
+            <select id="owner-select">
+
+                <option value="">
+                    Select an owner
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Vehicles -->
+
+        <div id="owner-vehicle-container" class="vehicle-grid">
+
+        </div>
+
+
+    </section>
+
+</main>
+
+
+<script>
+
+const ownerSelect =
+    document.getElementById("owner-select");
+
+const vehicleContainer =
+    document.getElementById("owner-vehicle-container");
+
+
+// Load owners
+
+fetch("http://127.0.0.1:5000/owners")
+
+    .then(response => response.json())
+
+    .then(owners => {
+
+        owners.forEach(owner => {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                owner.owner_id;
+
+            option.textContent =
+                owner.owner_name;
+
+            ownerSelect.appendChild(option);
+
+        });
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+    });
+
+
+// When owner is selected
+
+ownerSelect.addEventListener("change", () => {
+
+    const ownerId =
+        ownerSelect.value;
+
+
+    if (!ownerId) {
+
+        vehicleContainer.innerHTML = "";
+
+        return;
+
+    }
+
+
+    fetch(
+        "http://127.0.0.1:5000/owner-vehicles/"
+        + ownerId
+    )
+
+        .then(response => response.json())
+
+        .then(vehicles => {
+
+            vehicleContainer.innerHTML = "";
+
+
+            if (vehicles.length === 0) {
+
+                vehicleContainer.innerHTML =
+                    "<p>No vehicles listed by this owner.</p>";
+
+                return;
+
+            }
+
+
+            vehicles.forEach(vehicle => {
+
+                const card =
+                    document.createElement("div");
+
+                card.className =
+                    "vehicle-card";
+
+
+                card.innerHTML = `
+
+                    <h3>
+                        ${vehicle.vehicle_name}
+                    </h3>
+
+                    <p>
+                        <strong>📍 Location:</strong>
+                        ${vehicle.location}
+                    </p>
+
+                    <p>
+                        <strong>💰 Price:</strong>
+                        ₹${vehicle.price_per_day} / day
+                    </p>
+
+                    <p>
+                        <strong>Model Year:</strong>
+                        ${vehicle.model_year}
+                    </p>
+
+                    <p>
+                        <strong>🛠 Condition:</strong>
+                        ${vehicle.condition_description}
+                    </p>
+
+                    <p>
+                        <strong>Status:</strong>
+                        ${vehicle.availability_status}
+                    </p>
+
+                `;
+
+
+                vehicleContainer.appendChild(card);
+
+            });
+
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            vehicleContainer.innerHTML =
+                "<p>Unable to load vehicles.</p>";
+
+        });
+
+});
+
+</script>
+
+</body>
+
+</html>

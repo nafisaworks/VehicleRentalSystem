@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Request a Driver</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <h1>Request an Independent Driver</h1>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="customer-dashboard.html">Customer</a>
+        <a href="owner-dashboard.html">Owner</a>
+        <a href="driver-dashboard.html">Driver</a>
+    </nav>
+</header>
+
+
+<main>
+
+<section class="dashboard">
+
+    <h2>Request a Driver</h2>
+
+    <p class="dashboard-subtitle">
+        Select one of your bookings and choose an available independent driver.
+    </p>
+
+
+    <!-- Booking Selection -->
+
+    <div class="dashboard-card">
+
+        <h3>📅 Select Booking</h3>
+
+        <select id="booking-select">
+            <option value="">Loading bookings...</option>
+        </select>
+
+    </div>
+
+
+    <!-- Driver Selection -->
+
+    <div class="dashboard-card">
+
+        <h3>👨‍✈️ Available Drivers</h3>
+
+        <div id="driver-container">
+            <p>Loading drivers...</p>
+        </div>
+
+    </div>
+
+
+    <p id="request-message"></p>
+
+</section>
+
+</main>
+
+
+<script>
+
+const customerId = 1;
+
+const bookingSelect =
+    document.getElementById("booking-select");
+
+const driverContainer =
+    document.getElementById("driver-container");
+
+const requestMessage =
+    document.getElementById("request-message");
+
+
+// --------------------------------------------------
+// LOAD CUSTOMER BOOKINGS
+// --------------------------------------------------
+
+fetch(
+    "http://127.0.0.1:5000/customer-bookings/"
+    + customerId
+)
+
+.then(response => response.json())
+
+.then(bookings => {
+
+    bookingSelect.innerHTML =
+        '<option value="">Select a booking</option>';
+
+    bookings.forEach(booking => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = booking.booking_id;
+
+        option.textContent =
+            "Booking #" +
+            booking.booking_id +
+            " - " +
+            booking.vehicle_name +
+            " (" +
+            booking.start_date +
+            " to " +
+            booking.end_date +
+            ")";
+
+        bookingSelect.appendChild(option);
+
+    });
+
+})
+
+.catch(error => {
+
+    console.error(error);
+
+    bookingSelect.innerHTML =
+        '<option value="">Unable to load bookings</option>';
+
+});
+bookingSelect.addEventListener("change", () => {
+
+    const selectedBookingId =
+        bookingSelect.value;
+
+    if (!selectedBookingId) {
+
+        driverContainer.innerHTML =
+            "<p>Please select a booking.</p>";
+
+        return;
+
+    }
+
+
+    fetch(
+        "http://127.0.0.1:5000/customer-bookings/"
+        + customerId
+    )
+
+    .then(response => response.json())
+
+    .then(bookings => {
+
+        const selectedBooking =
+            bookings.find(
+                booking =>
+                    booking.booking_id ==
+                    selectedBookingId
+            );
+
+        if (!selectedBooking) {
+            return;
+        }
+
+        loadDrivers(selectedBooking.location);
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        driverContainer.innerHTML =
+            "<p>Unable to determine booking location.</p>";
+
+    });
+
+});
+// --------------------------------------------------
+// LOAD AVAILABLE DRIVERS
+// --------------------------------------------------
+
+function loadDrivers(location) {
+
+    driverContainer.innerHTML =
+        "<p>Loading drivers for " + location + "...</p>";
+
+    fetch(
+        "http://127.0.0.1:5000/drivers?location="
+        + encodeURIComponent(location)
+    )
+
+    .then(response => response.json())
+
+    .then(drivers => {
+
+        driverContainer.innerHTML = "";
+
+        if (drivers.length === 0) {
+
+            driverContainer.innerHTML =
+                "<p>No available drivers found in "
+                + location
+                + ".</p>";
+
+            return;
+        }
+
+
+        drivers.forEach(driver => {
+
+            const card =
+                document.createElement("div");
+
+            card.className = "dashboard-card";
+
+
+            card.innerHTML = `
+
+                <h3>👨‍✈️ ${driver.driver_name}</h3>
+
+                <p>
+                    <strong>📍 Location:</strong>
+                    ${driver.location}
+                </p>
+
+                <p>
+                    <strong>Experience:</strong>
+                    ${driver.experience_years} years
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    ${driver.availability_status}
+                </p>
+
+                <button class="request-driver-button"
+                        data-driver-id="${driver.driver_id}">
+
+                    Request Driver
+
+                </button>
+
+            `;
+
+            driverContainer.appendChild(card);
+
+        });
+
+
+        // ----------------------------------------------
+        // REQUEST DRIVER
+        // ----------------------------------------------
+
+        document
+            .querySelectorAll(".request-driver-button")
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+
+                    const bookingId =
+                        bookingSelect.value;
+
+                    const driverId =
+                        button.dataset.driverId;
+
+
+                    if (!bookingId) {
+
+                        requestMessage.textContent =
+                            "Please select a booking first.";
+
+                        return;
+
+                    }
+
+
+                    fetch(
+                        "http://127.0.0.1:5000/driver-requests",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+
+                                booking_id:
+                                    parseInt(bookingId),
+
+                                customer_id:
+                                    customerId,
+
+                                driver_id:
+                                    parseInt(driverId)
+
+                            })
+                        }
+                    )
+
+                    .then(response => response.json())
+
+                    .then(result => {
+
+                        if (result.error) {
+
+                            requestMessage.textContent =
+                                "Error: " + result.error;
+
+                        } else {
+
+                            requestMessage.textContent =
+                                "Driver request sent successfully! "
+                                + "Request ID: "
+                                + result.request_id;
+
+                            button.disabled = true;
+
+                            button.textContent =
+                                "Request Sent";
+
+                        }
+
+                    })
+
+                    .catch(error => {
+
+                        console.error(error);
+
+                        requestMessage.textContent =
+                            "Unable to send driver request.";
+
+                    });
+
+                });
+
+            });
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        driverContainer.innerHTML =
+            "<p>Unable to load drivers.</p>";
+
+    });
+
+}
+</script>
+</body>
+
+</html>

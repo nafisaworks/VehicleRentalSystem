@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>List Your Vehicle</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <h1>Vehicle Rental Management System</h1>
+
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="vehicles.html">Vehicles</a>
+        <a href="list-vehicle.html">List Your Vehicle</a>
+    </nav>
+</header>
+
+
+<main>
+
+    <div class="form-container">
+
+        <h2>List Your Vehicle</h2>
+
+        <p class="form-subtitle">
+            Share your vehicle with customers looking for rentals in your area.
+        </p>
+
+        <form id="vehicle-form">
+
+            <label>Vehicle Name</label>
+            <input
+                type="text"
+                id="vehicle_name"
+                placeholder="e.g. Honda City"
+                required
+            >
+
+            <label>Registration Number</label>
+            <input
+                type="text"
+                id="registration_no"
+                placeholder="e.g. TN09AB1234"
+                required
+            >
+
+            <label>Vehicle Type</label>
+            <select id="type_id" required>
+                <option value="">Select vehicle type</option>
+                <option value="1">Sedan</option>
+                <option value="2">SUV</option>
+                <option value="3">Hatchback</option>
+                <option value="4">Luxury</option>
+            </select>
+
+            <label>Model Year</label>
+            <input
+                type="number"
+                id="model_year"
+                placeholder="e.g. 2024"
+                required
+            >
+
+            <label>Price Per Day (₹)</label>
+            <input
+                type="number"
+                id="price_per_day"
+                placeholder="e.g. 2000"
+                required
+            >
+
+            <label>Owner</label>
+            <select id="owner_id" required>
+                <option value="">Select owner</option>
+            </select>
+
+            <label>Location</label>
+            <input
+                type="text"
+                id="location"
+                placeholder="e.g. Chennai"
+                required
+            >
+
+            <label>Vehicle Condition</label>
+            <textarea
+                id="condition_description"
+                placeholder="Describe the condition of your vehicle..."
+                required
+            ></textarea>
+
+            <button type="submit">
+                List Vehicle
+            </button>
+
+        </form>
+
+        <p id="message"></p>
+
+    </div>
+
+</main>
+
+
+<script>
+
+const ownerSelect = document.getElementById("owner_id");
+const form = document.getElementById("vehicle-form");
+const message = document.getElementById("message");
+
+
+/* Load owners */
+
+fetch("http://127.0.0.1:5000/owners")
+    .then(response => response.json())
+    .then(owners => {
+
+        owners.forEach(owner => {
+
+            const option = document.createElement("option");
+
+            option.value = owner.owner_id;
+            option.textContent = owner.owner_name;
+
+            ownerSelect.appendChild(option);
+
+        });
+
+    })
+    .catch(error => {
+
+        console.error(error);
+
+        message.textContent =
+            "Unable to load owners.";
+
+    });
+
+
+/* Submit vehicle */
+
+form.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+    const vehicleData = {
+
+        vehicle_name:
+            document.getElementById("vehicle_name").value,
+
+        registration_no:
+            document.getElementById("registration_no").value,
+
+        type_id:
+            parseInt(document.getElementById("type_id").value),
+
+        model_year:
+            parseInt(document.getElementById("model_year").value),
+
+        price_per_day:
+            parseFloat(document.getElementById("price_per_day").value),
+
+        owner_id:
+            parseInt(document.getElementById("owner_id").value),
+
+        location:
+            document.getElementById("location").value,
+
+        condition_description:
+            document.getElementById("condition_description").value
+
+    };
+
+
+    fetch("http://127.0.0.1:5000/vehicles", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(vehicleData)
+
+    })
+
+    .then(response => response.json())
+
+    .then(result => {
+
+        if (result.error) {
+
+            message.textContent =
+                "Error: " + result.error;
+
+        } else {
+
+            message.textContent =
+                "Vehicle listed successfully! Vehicle ID: "
+                + result.vehicle_id;
+
+            form.reset();
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        message.textContent =
+            "Something went wrong. Make sure the backend is running.";
+
+    });
+
+});
+
+</script>
+
+</body>
+</html>
