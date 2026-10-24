@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Vehicle Rental System</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="owner-login.html">Owner Login</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <h2>Create Owner Account</h2>
+            <p>Register to list vehicles and manage rentals.</p>
+
+            <form id="registerForm">
+                <label for="owner_name">Full Name</label>
+                <input type="text" id="owner_name" required maxlength="100">
+
+                <label for="email">Email</label>
+                <input type="email" id="email" required maxlength="100">
+
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" required maxlength="15">
+
+                <label for="address">Address (optional)</label>
+                <input type="text" id="address" maxlength="255">
+
+                <label for="password">Password (minimum 8 characters)</label>
+                <input type="password" id="password" minlength="8" required>
+
+                <button type="submit" id="registerButton">Register</button>
+            </form>
+
+            <p id="message" role="status"></p>
+            <p>Already registered? <a href="owner-login.html">Log in</a></p>
+        </section>
+    </main>
+
+    <script>
+        const API = "http://127.0.0.1:5000";
+
+        document.getElementById("registerForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const button = document.getElementById("registerButton");
+            const message = document.getElementById("message");
+
+            button.disabled = true;
+            button.textContent = "Registering...";
+            message.textContent = "";
+
+            try {
+                const response = await fetch(`${API}/owner/register`, {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        owner_name: document.getElementById("owner_name").value.trim(),
+                        email: document.getElementById("email").value.trim(),
+                        phone: document.getElementById("phone").value.trim(),
+                        address: document.getElementById("address").value.trim() || null,
+                        password: document.getElementById("password").value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    message.textContent = data.error || "Registration failed.";
+                    return;
+                }
+
+                message.textContent = "Registration successful! Opening your dashboard...";
+                window.location.href = "owner-dashboard.html";
+            } catch (error) {
+                console.error(error);
+                message.textContent = "Could not connect to the server. Check that Flask is running.";
+            } finally {
+                button.disabled = false;
+                button.textContent = "Register";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Local and temporary files
+.DS_Store
+* copy*
+*.old.*
+*backup*
+reset_owner_password.py
+backend/app copy.py
+
+# Local project backups
+*_backup_before_commit/

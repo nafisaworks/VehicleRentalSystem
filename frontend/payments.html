@@ -1,0 +1,198 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments | Peer2Rent</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: #f4f6f9;
+            color: #222;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        a { color: #2457c5; }
+        .notice {
+            background: #fff4d6;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .payment-card {
+            background: white;
+            padding: 18px;
+            margin: 16px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #0001;
+        }
+        button, select {
+            padding: 10px;
+            margin: 6px 6px 6px 0;
+        }
+        .status { font-weight: bold; }
+        #message { margin: 16px 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>💳 Peer2Rent Payments</h1>
+        <a href="customer-dashboard.html">← Customer Dashboard</a>
+    </header>
+
+    <div class="notice">
+        <strong>Demo payments only.</strong>
+        No real money is collected. Demo payment options simulate a successful payment.
+    </div>
+
+    <p id="message">Loading your bookings and payment history...</p>
+    <section id="bookings"></section>
+
+    <h2>Payment History</h2>
+    <section id="history"></section>
+
+    <script>
+        const API = "http://127.0.0.1:5000";
+        const message = document.getElementById("message");
+        const bookingsBox = document.getElementById("bookings");
+        const historyBox = document.getElementById("history");
+
+        async function loadPayments() {
+            try {
+                const auth = await fetch(`${API}/customer/me`, {
+                    credentials: "include"
+                });
+
+                if (!auth.ok) {
+                    message.textContent = "Please log in to view your payments.";
+                    return;
+                }
+
+                const [bookingResponse, paymentResponse] = await Promise.all([
+                    fetch(`${API}/my-bookings`, { credentials: "include" }),
+                    fetch(`${API}/my-payments`, { credentials: "include" })
+                ]);
+
+                const bookings = await bookingResponse.json();
+                const payments = await paymentResponse.json();
+
+                if (!bookingResponse.ok || !paymentResponse.ok) {
+                    throw new Error("Could not load payment information.");
+                }
+
+                message.textContent = "";
+
+                if (!bookings.length) {
+                    bookingsBox.textContent = "No bookings found yet.";
+                } else {
+                    bookingsBox.innerHTML = "<h2>Your Bookings</h2>";
+
+                    bookings.forEach(booking => {
+                        const card = document.createElement("div");
+                        card.className = "payment-card";
+
+                        const paid = payments.some(payment =>
+                            Number(payment.booking_id) === Number(booking.booking_id) &&
+                            payment.payment_status === "Paid"
+                        );
+
+                        const title = document.createElement("h3");
+                        title.textContent =
+                            `${booking.vehicle_name} — Booking #${booking.booking_id}`;
+
+                        const details = document.createElement("p");
+                        details.textContent =
+                            `Dates: ${booking.start_date} to ${booking.end_date} | Total: ₹${Number(booking.total_amount).toFixed(2)}`;
+
+                        const status = document.createElement("p");
+                        status.className = "status";
+                        status.textContent = `Payment status: ${paid ? "Paid" : "Not paid"}`;
+
+                        card.append(title, details, status);
+
+
+                        if (!paid && booking.booking_status === "Confirmed") {
+
+                            const select = document.createElement("select");
+                            select.innerHTML = `
+                                <option value="Demo UPI">Demo UPI</option>
+                                <option value="Demo Card">Demo Card</option>
+                                <option value="Cash">Cash</option>
+                            `;
+
+                            const button = document.createElement("button");
+                            button.textContent = "Pay (Demo)";
+                            button.addEventListener("click", async () => {
+                                button.disabled = true;
+                                try {
+                                    const response = await fetch(`${API}/payments`, {
+                                        method: "POST",
+                                        credentials: "include",
+                                        headers: {
+                                            "Content-Type": "application/json"
+                                        },
+                                        body: JSON.stringify({
+                                            booking_id: booking.booking_id,
+                                            payment_method: select.value
+                                        })
+                                    });
+
+                                    const result = await response.json();
+                                    if (!response.ok) {
+                                        throw new Error(result.error || "Payment failed.");
+                                    }
+
+                                    alert("Demo payment recorded successfully.");
+                                    await loadPayments();
+                                } catch (error) {
+                                    alert(error.message);
+                                    button.disabled = false;
+                                }
+                            });
+
+                            card.append(select, button);
+                        } else if (!paid) {
+                            const note = document.createElement("p");
+                            note.textContent =
+                                `Booking status: ${booking.booking_status}. Payment is available now`;
+                            card.append(note);
+                        }
+
+                        bookingsBox.append(card);
+                    });
+                }
+
+                if (!payments.length) {
+                    historyBox.textContent = "No payment records yet.";
+                } else {
+                    historyBox.innerHTML = "";
+
+                    payments.forEach(payment => {
+                        const card = document.createElement("div");
+                        card.className = "payment-card";
+
+                        const details = document.createElement("p");
+                        details.textContent =
+                            `Payment #${payment.payment_id} | Booking #${payment.booking_id} | ${payment.vehicle_name} | ₹${payment.amount.toFixed(2)} | ${payment.payment_method} | ${payment.payment_status} | ${payment.payment_date}`;
+
+                        card.append(details);
+                        historyBox.append(card);
+                    });
+                }
+            } catch (error) {
+                message.textContent = error.message;
+            }
+        }
+
+        loadPayments();
+    </script>
+</body>
+</html>

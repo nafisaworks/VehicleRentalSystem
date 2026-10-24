@@ -1,19 +1,16 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>List Your Vehicle</title>
-
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
 <header>
     <h1>Vehicle Rental Management System</h1>
-
     <nav>
         <a href="index.html">Home</a>
         <a href="vehicles.html">Vehicles</a>
@@ -21,36 +18,23 @@
     </nav>
 </header>
 
-
 <main>
-
     <div class="form-container">
-
         <h2>List Your Vehicle</h2>
-
         <p class="form-subtitle">
             Share your vehicle with customers looking for rentals in your area.
         </p>
 
         <form id="vehicle-form">
+            <label for="vehicle_name">Vehicle Name</label>
+            <input type="text" id="vehicle_name"
+                   placeholder="e.g. Honda City" required>
 
-            <label>Vehicle Name</label>
-            <input
-                type="text"
-                id="vehicle_name"
-                placeholder="e.g. Honda City"
-                required
-            >
+            <label for="registration_no">Registration Number</label>
+            <input type="text" id="registration_no"
+                   placeholder="e.g. TN09AB1234" required>
 
-            <label>Registration Number</label>
-            <input
-                type="text"
-                id="registration_no"
-                placeholder="e.g. TN09AB1234"
-                required
-            >
-
-            <label>Vehicle Type</label>
+            <label for="type_id">Vehicle Type</label>
             <select id="type_id" required>
                 <option value="">Select vehicle type</option>
                 <option value="1">Sedan</option>
@@ -59,170 +43,203 @@
                 <option value="4">Luxury</option>
             </select>
 
-            <label>Model Year</label>
-            <input
-                type="number"
-                id="model_year"
-                placeholder="e.g. 2024"
-                required
-            >
+            <label for="model_year">Model Year</label>
+            <input type="number" id="model_year"
+                   min="1900" max="2100" placeholder="e.g. 2024" required>
 
-            <label>Price Per Day (₹)</label>
-            <input
-                type="number"
-                id="price_per_day"
-                placeholder="e.g. 2000"
-                required
-            >
+            <label for="price_per_day">Price Per Day (₹)</label>
+            <input type="number" id="price_per_day"
+                   min="1" step="0.01" placeholder="e.g. 2000" required>
 
-            <label>Owner</label>
-            <select id="owner_id" required>
-                <option value="">Select owner</option>
+            <label for="location">Location</label>
+            <input type="text" id="location"
+                   placeholder="e.g. Chennai" required>
+
+            <label for="condition_description">Vehicle Condition</label>
+            <textarea id="condition_description"
+                      placeholder="Describe the condition of your vehicle..."
+                      required></textarea>
+
+            <hr>
+            <h3>Commercial Eligibility Details</h3>
+            <p>
+                Provide accurate information. Commercial eligibility remains
+                pending until the required evidence has been reviewed.
+            </p>
+
+            <label>
+                <input type="checkbox" id="commercial_use_declared">
+                I declare that this vehicle is eligible for the intended
+                commercial rental use.
+            </label>
+
+            <label for="permit_number">Permit Number</label>
+            <input type="text" id="permit_number"
+                   placeholder="Enter permit number, if applicable">
+
+            <label for="permit_expiry_date">Permit Expiry Date</label>
+            <input type="date" id="permit_expiry_date">
+
+            <label for="insurance_expiry_date">Insurance Expiry Date</label>
+            <input type="date" id="insurance_expiry_date">
+
+            <hr>
+            <h3>Supporting Document References</h3>
+            <p>
+                Enter the reference or identifier for each supporting document.
+                These fields do not upload files. Do not enter private access
+                links or sensitive credentials.
+            </p>
+
+            <label for="document_type_1">Document Type</label>
+            <select id="document_type_1">
+                <option value="">Select document type</option>
+                <option value="Permit">Commercial Permit</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Registration">Vehicle Registration</option>
+                <option value="Fitness Certificate">Fitness Certificate</option>
+                <option value="Other">Other Supporting Document</option>
             </select>
 
-            <label>Location</label>
-            <input
-                type="text"
-                id="location"
-                placeholder="e.g. Chennai"
-                required
-            >
+            <label for="document_reference_1">Document Reference</label>
+            <input type="text" id="document_reference_1"
+                   placeholder="Enter document reference">
 
-            <label>Vehicle Condition</label>
-            <textarea
-                id="condition_description"
-                placeholder="Describe the condition of your vehicle..."
-                required
-            ></textarea>
+            <label for="document_expiry_1">Document Expiry Date (if applicable)</label>
+            <input type="date" id="document_expiry_1">
 
-            <button type="submit">
-                List Vehicle
-            </button>
+            <label for="document_type_2">Additional Document Type (optional)</label>
+            <select id="document_type_2">
+                <option value="">No additional document</option>
+                <option value="Permit">Commercial Permit</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Registration">Vehicle Registration</option>
+                <option value="Fitness Certificate">Fitness Certificate</option>
+                <option value="Other">Other Supporting Document</option>
+            </select>
 
+            <label for="document_reference_2">Additional Document Reference</label>
+            <input type="text" id="document_reference_2"
+                   placeholder="Enter document reference">
+
+            <label for="document_expiry_2">Additional Document Expiry Date</label>
+            <input type="date" id="document_expiry_2">
+
+            <button type="submit" id="submit-button">List Vehicle</button>
         </form>
 
-        <p id="message"></p>
-
+        <p id="message" role="status" aria-live="polite"></p>
     </div>
-
 </main>
 
-
 <script>
-
+const API = "http://127.0.0.1:5000";
 const ownerSelect = document.getElementById("owner_id");
 const form = document.getElementById("vehicle-form");
 const message = document.getElementById("message");
+const submitButton = document.getElementById("submit-button");
 
+async function loadOwners() {
+    try {
+        const response = await fetch(`${API}/owners`);
+        if (!response.ok) throw new Error("Could not load owners.");
 
-/* Load owners */
-
-fetch("http://127.0.0.1:5000/owners")
-    .then(response => response.json())
-    .then(owners => {
+        const owners = await response.json();
 
         owners.forEach(owner => {
-
             const option = document.createElement("option");
-
             option.value = owner.owner_id;
             option.textContent = owner.owner_name;
-
             ownerSelect.appendChild(option);
-
         });
-
-    })
-    .catch(error => {
-
+    } catch (error) {
         console.error(error);
+        message.textContent = "Unable to load owners. Check that the backend is running.";
+    }
+}
 
-        message.textContent =
-            "Unable to load owners.";
+loadOwners();
 
-    });
-
-
-/* Submit vehicle */
-
-form.addEventListener("submit", function(event) {
-
+form.addEventListener("submit", async function(event) {
     event.preventDefault();
+    message.textContent = "";
 
-    const vehicleData = {
+    const documents = [];
 
-        vehicle_name:
-            document.getElementById("vehicle_name").value,
+    for (const number of [1, 2]) {
+        const type = document.getElementById(`document_type_${number}`).value.trim();
+        const reference = document.getElementById(`document_reference_${number}`).value.trim();
+        const expiry = document.getElementById(`document_expiry_${number}`).value;
 
-        registration_no:
-            document.getElementById("registration_no").value,
-
-        type_id:
-            parseInt(document.getElementById("type_id").value),
-
-        model_year:
-            parseInt(document.getElementById("model_year").value),
-
-        price_per_day:
-            parseFloat(document.getElementById("price_per_day").value),
-
-        owner_id:
-            parseInt(document.getElementById("owner_id").value),
-
-        location:
-            document.getElementById("location").value,
-
-        condition_description:
-            document.getElementById("condition_description").value
-
-    };
-
-
-    fetch("http://127.0.0.1:5000/vehicles", {
-
-        method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify(vehicleData)
-
-    })
-
-    .then(response => response.json())
-
-    .then(result => {
-
-        if (result.error) {
-
-            message.textContent =
-                "Error: " + result.error;
-
-        } else {
-
-            message.textContent =
-                "Vehicle listed successfully! Vehicle ID: "
-                + result.vehicle_id;
-
-            form.reset();
-
+        if (type && !reference) {
+            message.textContent = `Enter the reference for document ${number}, or clear its type.`;
+            return;
         }
 
-    })
+        if (reference && !type) {
+            message.textContent = `Select the type for document ${number}.`;
+            return;
+        }
 
-    .catch(error => {
+        if (type && reference) {
+            const document = {
+                document_type: type,
+                document_reference: reference
+            };
 
-        console.error(error);
+            if (expiry) document.expiry_date = expiry;
+            documents.push(document);
+        }
+    }
 
-        message.textContent =
-            "Something went wrong. Make sure the backend is running.";
 
+const vehicleData = {
+    vehicle_name: document.getElementById("vehicle_name").value.trim(),
+    registration_no: document.getElementById("registration_no").value.trim(),
+    type_id: Number(document.getElementById("type_id").value),
+    model_year: Number(document.getElementById("model_year").value),
+    price_per_day: Number(document.getElementById("price_per_day").value),
+    location: document.getElementById("location").value.trim(),
+    condition_description: document.getElementById("condition_description").value.trim(),
+    commercial_use_declared: document.getElementById("commercial_use_declared").checked,
+    permit_number: document.getElementById("permit_number").value.trim() || null,
+    permit_expiry_date: document.getElementById("permit_expiry_date").value || null,
+    insurance_expiry_date: document.getElementById("insurance_expiry_date").value || null,
+    documents: documents
+};
+
+submitButton.disabled = true;
+submitButton.textContent = "Submitting...";
+
+try {
+    const response = await fetch(`${API}/vehicles`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(vehicleData)
     });
 
+        const result = await response.json();
+
+        if (!response.ok || result.error) {
+            message.textContent = "Error: " + (result.error || "Vehicle submission failed.");
+            return;
+        }
+
+        message.textContent =
+            `Vehicle submitted successfully! ID: ${result.vehicle_id}. ` +
+            "Listing and commercial eligibility are awaiting their respective reviews.";
+
+        form.reset();
+    } catch (error) {
+        console.error(error);
+        message.textContent =
+            "Unable to submit. Check that the Flask backend is running.";
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = "List Vehicle";
+    }
 });
-
 </script>
-
 </body>
 </html>

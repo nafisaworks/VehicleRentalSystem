@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peer2Rent | Admin Dashboard</title><link rel="stylesheet" href="style.css">
+<style>
+:root{--ai:#171717;--am:#77736e;--ap:#f6f4f0;--ag:#c7a66a;--al:#e8e3da;--ared:#9f3037}body{background:var(--ap)}.shell{width:min(1240px,calc(100% - 40px));margin:34px auto 72px}.mast{background:var(--ai);color:#fff;border-radius:22px;padding:clamp(24px,5vw,48px);display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;box-shadow:var(--shadow)}.mast h1{font:600 clamp(2.1rem,5vw,3.4rem)/1.05 'Playfair Display',Georgia,serif;margin:8px 0 10px;letter-spacing:-.03em}.mast p{color:#dedbd3;margin:0;max-width:650px}.eyebrow{color:var(--ag);font-size:.76rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase}.head-actions,.actions{display:flex;gap:8px;flex-wrap:wrap}.head-actions button{margin:0}.gold{background:var(--ag);color:#171816;border-color:var(--ag)}.gold:hover{background:#d6b980}.light-outline{background:transparent;color:white;border-color:#ffffff65}.light-outline:hover{background:#ffffff14}.notice{margin:18px 0;border:1px solid var(--al);border-radius:12px;padding:13px 16px;background:#f0e8d8;color:#594a31}.notice.error{background:#fff0ef;border-color:#f0c8c6;color:#8b2222}.notice.success{background:#eaf5ed;border-color:#c9e3d0;color:#1d6038}.panel{background:white;border:1px solid var(--al);border-radius:18px;padding:clamp(20px,3vw,30px);margin:22px 0;box-shadow:0 8px 28px rgba(25,22,17,.035)}.login{max-width:540px;margin:28px auto}.panel h2{font-family:'Playfair Display',Georgia,serif;font-weight:600;margin:0 0 8px}.intro{margin:0 0 20px}.form{display:grid;gap:14px;max-width:440px}.form button{justify-self:start}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:22px 0}.stat{background:#fff;border:1px solid var(--al);border-radius:16px;padding:20px;min-width:0}.stat-label{color:var(--am);font-size:.84rem;font-weight:600}.stat-num{font:2.2rem/1.15 'Playfair Display',Georgia,serif;margin-top:8px}.section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:20px}.section-head h2{margin:0 0 6px}.section-head p{margin:0}.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+#commercialList {
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+#commercialList .review-card {
+  border: 2px solid #c7a66a;
+  border-radius: 18px;
+  padding: 24px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(25, 22, 17, 0.06);
+}
+
+#commercialList .review-card > h3 {
+  font-size: 1.4rem;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8e3da;
+}
+
+#commercialList .docs {
+  padding: 14px;
+  background: #f6f4f0;
+  border-radius: 12px;
+}
+
+#commercialList .doc {
+  border: 1px solid #d6cec1;
+  background: #fff;
+  padding: 18px;
+}
+
+#commercialList .doc + .doc {
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .grid,
+  #commercialList {
+    grid-template-columns: 1fr;
+  }
+}.review-card{border:1px solid var(--al);border-radius:15px;padding:20px;min-width:0;overflow-wrap:anywhere;background:#fff}.review-card h3{margin:0 0 12px;font-size:1.18rem}.review-card p{margin:7px 0;color:#514e49;font-size:.93rem}.review-card strong{color:var(--ai)}.pill{display:inline-flex;border-radius:999px;padding:5px 10px;font-size:.77rem;font-weight:700;background:#f0e8d8;color:#6d5429}.pill.good{background:#e7f3ea;color:#1f663d}.pill.bad{background:#fae8e7;color:#8d2727}.pill.neutral{background:#efede9;color:#5f5a52}.fields{display:grid;gap:8px;margin-top:15px}.fields textarea{min-height:76px;resize:vertical}.actions{margin-top:12px}.actions button{min-height:40px;padding:9px 14px;margin:0;font-size:.85rem}.actions .approve{background:var(--ai);color:#fff;border-color:var(--ai)}.actions .reject{background:#fff;color:var(--ared);border-color:#e4c7c5}.actions .correction{background:#f0e8d8;color:#6d5429;border-color:#e7dbc4}.actions button:disabled{opacity:.55;cursor:wait;transform:none}.docs{display:grid;gap:12px;margin-top:12px}.doc{border:1px solid var(--al);background:#faf9f6;border-radius:12px;padding:14px}.doc h4{margin:0 0 8px}.doc p{font-size:.88rem;overflow-wrap:anywhere}.doc-ref{background:#f0ede7;padding:9px 11px;border-radius:8px;font-size:.83rem;overflow-wrap:anywhere}.empty{border:1px dashed #d6cec1;border-radius:14px;padding:22px;color:var(--am);background:#fbfaf7}.hidden{display:none!important}.small{font-size:.83rem;color:var(--am)}@media(max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.grid{grid-template-columns:1fr}}@media(max-width:560px){.shell{width:calc(100% - 26px);margin-top:14px}.mast{border-radius:17px}.stats{gap:9px}.stat{padding:15px}.stat-num{font-size:1.8rem}.head-actions{width:100%}.head-actions button{flex:1}}
+</style></head>
+<body><main class="shell">
+<header class="mast"><div><div class="eyebrow">Peer2Rent · Operations</div><h1>Admin workspace</h1><p>Review vehicle listings, commercial eligibility and supporting documents before vehicles become available to customers.</p></div><div class="head-actions"><button id="refreshButton" class="light-outline hidden" type="button">Refresh reviews</button><button id="logoutButton" class="gold hidden" type="button">Log out</button></div></header>
+<div id="notice" class="notice hidden" role="status" aria-live="polite"></div>
+<section id="loginSection" class="login panel"><div class="eyebrow">Restricted access</div><h2>Administrator login</h2><p class="intro">Sign in to review vehicle listings and eligibility evidence.</p><form id="loginForm" class="form"><div><label for="email">Admin email</label><input id="email" type="email" autocomplete="username" required></div><div><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div><button class="gold" type="submit">Log in securely</button></form></section>
+<section id="dashboardSection" class="hidden"><div class="stats"><article class="stat"><div class="stat-label">Pending listings</div><div id="listingStat" class="stat-num">—</div></article><article class="stat"><div class="stat-label">Commercial reviews</div><div id="commercialStat" class="stat-num">—</div></article><article class="stat"><div class="stat-label">Documents awaiting review</div><div id="documentStat" class="stat-num">—</div></article><article class="stat"><div class="stat-label">Review queue total</div><div id="totalStat" class="stat-num">—</div></article></div>
+<section class="panel"><div class="section-head"><div><div class="eyebrow">Queue 01</div><h2>Vehicle listing reviews</h2><p>Check listing details before approving a vehicle listing.</p></div><span id="vehicleCount" class="pill">Loading…</span></div><div id="vehicleList" class="grid"><div class="empty">Loading vehicle listings…</div></div></section>
+<section class="panel"><div class="section-head"><div><div class="eyebrow">Queue 02</div><h2>Commercial eligibility</h2><p>Review declarations, permit details and supporting documents. A declaration alone is not proof of eligibility.</p></div><span id="commercialCount" class="pill">Loading…</span></div><div id="commercialList" class="grid"><div class="empty">Loading commercial reviews…</div></div></section></section></main>
+<script>
+'use strict';const API='http://127.0.0.1:5000';const $=id=>document.getElementById(id);const notice=$('notice');let isLoading=false;
+function showNotice(message,type='error'){notice.textContent=message;notice.className='notice'+(type==='error'?' error':type==='success'?' success':'');notice.classList.remove('hidden')}
+async function apiRequest(path,options={}){const response=await fetch(API+path,{...options,credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})}});const data=await response.json().catch(()=>({}));if(!response.ok){if(response.status===401||response.status===403){$('dashboardSection').classList.add('hidden');$('loginSection').classList.remove('hidden');$('refreshButton').classList.add('hidden');$('logoutButton').classList.add('hidden')}throw new Error(data.error||'Request failed. Please try again.')}return data}
+function addText(parent,tag,value,cls=''){const el=document.createElement(tag);el.textContent=value===null||value===undefined||value===''?'Not provided':String(value);if(cls)el.className=cls;parent.appendChild(el);return el}
+function button(label,cls,handler){const b=document.createElement('button');b.type='button';b.textContent=label;b.className=cls;b.addEventListener('click',handler);return b}
+function reasonField(parent,labelText,placeholder){const wrap=document.createElement('div');wrap.className='fields';const label=addText(wrap,'label',labelText);const area=document.createElement('textarea');area.maxLength=500;area.placeholder=placeholder;wrap.appendChild(area);parent.appendChild(wrap);return area}
+function emptyState(node,message){node.replaceChildren();addText(node,'div',message,'empty')}
+async function submitReview(btn, path, payload) {
+  const previousScroll = window.scrollY;
+  btn.disabled = true;
+
+  try {
+    const result = await apiRequest(path, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    showNotice(result.message || 'Review saved.', 'success');
+    await loadDashboard();
+
+    window.scrollTo({
+      top: previousScroll,
+      behavior: 'instant'
+    });
+  } catch (e) {
+    showNotice(e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+async function loadPendingVehicles(){const list=$('vehicleList');list.replaceChildren();addText(list,'div','Loading vehicle listings…','empty');const vehicles=await apiRequest('/admin/pending-vehicles');$('vehicleCount').textContent=vehicles.length+' pending';$('listingStat').textContent=String(vehicles.length);if(!vehicles.length){emptyState(list,'No pending vehicle listings.');return}vehicles.forEach(v=>{const card=document.createElement('article');card.className='review-card';addText(card,'h3',v.vehicle_name);addText(card,'p','Registration: '+v.registration_no);addText(card,'p','Model year: '+v.model_year);addText(card,'p','Price per day: ₹'+v.price_per_day);addText(card,'p','Location: '+(v.location||'Not provided'));addText(card,'p','Owner: '+(v.owner_name||'Unknown'));addText(card,'p','Owner email: '+(v.owner_email||'Not provided'));addText(card,'p','Owner phone: '+(v.owner_phone||'Not provided'));addText(card,'p','Condition: '+(v.condition_description||'Not provided'));addText(card,'span',v.verification_status,'pill');const reason=reasonField(card,'Review notes','Required for rejection or requested corrections');const actions=document.createElement('div');actions.className='actions';[['Approve listing','Approved','approve'],['Reject','Rejected','reject'],['Request correction','Needs Correction','correction']].forEach(([label,decision,cls])=>actions.appendChild(button(label,cls,async e=>{const note=reason.value.trim();if(decision!=='Approved'&&!note){showNotice('Please provide a reason for rejection or requested corrections.');reason.focus();return}if(!confirm('Submit “'+decision+'” for '+v.vehicle_name+'?'))return;await submitReview(e.currentTarget,'/admin/review-vehicle',{vehicle_id:v.vehicle_id,decision,reason:note})})));card.appendChild(actions);list.appendChild(card)})}
+async function loadCommercialReviews(){const list=$('commercialList');list.replaceChildren();addText(list,'div','Loading commercial reviews…','empty');const vehicles=await apiRequest('/admin/pending-commercial-vehicles');$('commercialCount').textContent=vehicles.length+' pending';$('commercialStat').textContent=String(vehicles.length);if(!vehicles.length){emptyState(list,'No pending commercial eligibility reviews.');return}for(const v of vehicles){const card=document.createElement('article');card.className='review-card';addText(card,'h3',v.vehicle_name);addText(card,'p','Registration: '+v.registration_no);addText(card,'p','Owner: '+(v.owner_name||'Unknown'));addText(card,'p','Owner email: '+(v.owner_email||'Not provided'));addText(card,'p','Listing status: '+v.verification_status);addText(card,'p','Commercial-use declaration: '+(v.commercial_use_declared?'Declared':'Not declared'));addText(card,'p','Permit number: '+(v.permit_number||'Not provided'));addText(card,'p','Permit expiry: '+(v.permit_expiry_date||'Not provided'));addText(card,'p','Insurance expiry: '+(v.insurance_expiry_date||'Not provided'));addText(card,'span','Commercial status: '+v.commercial_eligibility_status,'pill');const heading=addText(card,'h4','Supporting documents');heading.style.margin='18px 0 8px';const docsBox=document.createElement('div');docsBox.className='docs';addText(docsBox,'div','Loading document records…','empty');card.appendChild(docsBox);const reason=reasonField(card,'Commercial review notes','Required for rejection or requested corrections');const actions=document.createElement('div');actions.className='actions';[['Mark verified','Verified','approve'],['Reject eligibility','Rejected','reject'],['Request correction','Needs Correction','correction']].forEach(([label,decision,cls])=>actions.appendChild(button(label,cls,async e=>{const note=reason.value.trim();if(decision!=='Verified'&&!note){showNotice('Please provide a reason for rejection or requested corrections.');reason.focus();return}const prompt=decision==='Verified'?'Confirm you reviewed all required evidence and applicable requirements for '+v.vehicle_name+'?':'Submit “'+decision+'” for '+v.vehicle_name+'?';if(!confirm(prompt))return;await submitReview(e.currentTarget,'/admin/review-commercial-eligibility',{vehicle_id:v.vehicle_id,decision,reason:note})})));card.appendChild(actions);list.appendChild(card);try{const docs=await apiRequest('/admin/vehicle-documents/'+encodeURIComponent(v.vehicle_id));docsBox.replaceChildren();if(!docs.length){addText(docsBox,'div','No supporting document records. Eligibility cannot be verified yet.','empty')}else docs.forEach(d=>{const item=document.createElement('div');item.className='doc';addText(item,'h4',d.document_type+' · Document #'+d.document_id);const statusClass=d.review_status==='Approved'?'good':d.review_status==='Rejected'?'bad':'neutral';addText(item,'span','Status: '+d.review_status,'pill '+statusClass);addText(item,'p','Expiry: '+(d.expiry_date||'Not provided'));addText(item,'p','Uploaded: '+(d.uploaded_at||'Not provided'));addText(item,'p','Review notes: '+(d.review_notes||'None'));addText(item,'div','Reference: '+(d.document_reference||'Not provided'),'doc-ref');if(d.review_status==='Pending'){const notes=reasonField(item,'Document review notes','Required for rejection or requested corrections');const docActions=document.createElement('div');docActions.className='actions';[['Approve document','Approved','approve'],['Reject document','Rejected','reject'],['Request correction','Needs Correction','correction']].forEach(([label,decision,cls])=>docActions.appendChild(button(label,cls,async e=>{const note=notes.value.trim();if(decision!=='Approved'&&!note){showNotice('Please provide notes for this document decision.');notes.focus();return}if(!confirm('Submit “'+decision+'” for document #'+d.document_id+'?'))return;await submitReview(e.currentTarget,'/admin/review-vehicle-document',{document_id:d.document_id,decision,notes:note})})));item.appendChild(docActions)}docsBox.appendChild(item)})}catch(e){emptyState(docsBox,'Could not load documents: '+e.message)}}}
+async function loadDashboard(){if(isLoading)return;isLoading=true;$('refreshButton').disabled=true;try{await Promise.all([loadPendingVehicles(),loadCommercialReviews()]);let pendingDocs=0;document.querySelectorAll('.doc .pill.neutral').forEach(p=>{if(p.textContent.includes('Pending'))pendingDocs++});$('documentStat').textContent=String(pendingDocs);$('totalStat').textContent=String((Number($('listingStat').textContent)||0)+(Number($('commercialStat').textContent)||0))}catch(e){showNotice(e.message)}finally{isLoading=false;$('refreshButton').disabled=false}}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=e.submitter||e.currentTarget.querySelector('button[type="submit"]');btn.disabled=true;try{await apiRequest('/admin/login',{method:'POST',body:JSON.stringify({email:$('email').value.trim(),password:$('password').value})});$('password').value='';$('loginSection').classList.add('hidden');$('dashboardSection').classList.remove('hidden');$('refreshButton').classList.remove('hidden');$('logoutButton').classList.remove('hidden');notice.classList.add('hidden');await loadDashboard()}catch(err){showNotice(err.message)}finally{btn.disabled=false}});
+$('refreshButton').addEventListener('click',loadDashboard);$('logoutButton').addEventListener('click',async()=>{const btn=$('logoutButton');btn.disabled=true;try{await apiRequest('/admin/logout',{method:'POST'});$('dashboardSection').classList.add('hidden');$('loginSection').classList.remove('hidden');$('refreshButton').classList.add('hidden');$('logoutButton').classList.add('hidden');$('vehicleList').replaceChildren();$('commercialList').replaceChildren();notice.classList.add('hidden');showNotice('You have logged out.','success')}catch(e){showNotice(e.message)}finally{btn.disabled=false}});
+</script></body></html>

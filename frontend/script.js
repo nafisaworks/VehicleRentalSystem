@@ -1,340 +1,53 @@
+const API = "http://127.0.0.1:5000";
 const container = document.getElementById("vehicle-container");
-
-// Create search/filter section
-const filterSection = document.createElement("div");
-
-filterSection.innerHTML = `
-    <div class="filter-box">
-        <input
-            type="text"
-            id="location-search"
-            placeholder="📍 Enter location (e.g. Chennai)"
-        >
-
-        <button id="search-button">Search</button>
-
-        <button id="show-all-button">Show All</button>
-    </div>
-`;
-
-container.parentElement.insertBefore(filterSection, container);
-
-const searchInput = document.getElementById("location-search");
-const searchButton = document.getElementById("search-button");
-const showAllButton = document.getElementById("show-all-button");
-
 let allVehicles = [];
+const filterSection = document.createElement("div");
+filterSection.className = "filter-box";
+filterSection.innerHTML = '<input type="search" id="location-search" placeholder="Search by location (e.g. Chennai)" aria-label="Search by location"><button id="search-button">Search</button><button id="show-all-button" class="secondary">Show all</button>';
+container.before(filterSection);
+container.className = "vehicle-grid";
+const searchInput = document.getElementById("location-search");
 
-// Get vehicles from Flask API
-fetch("http://127.0.0.1:5000/vehicles")
-    .then(response => response.json())
-    .then(vehicles => {
+fetch(`${API}/vehicles`)
+ .then(r => { if (!r.ok) throw new Error("Unable to load vehicles"); return r.json(); })
+ .then(vehicles => { allVehicles = vehicles; displayVehicles(allVehicles); })
+ .catch(error => { container.innerHTML = '<p class="notice">Unable to load vehicles. Please make sure the backend is running.</p>'; console.error(error); });
 
-        allVehicles = vehicles;
-
-        displayVehicles(allVehicles);
-
-    })
-    .catch(error => {
-
-        container.innerHTML =
-            "<p>Unable to load vehicles. Please make sure the backend is running.</p>";
-
-        console.error(error);
-    });
-
-
-// Display vehicle cards
 function displayVehicles(vehicles) {
-
-    container.innerHTML = "";
-
-    if (vehicles.length === 0) {
-
-        container.innerHTML =
-            "<p>No vehicles available in this location.</p>";
-
-        return;
-    }
-
-    vehicles.forEach(vehicle => {
-
-        const card = document.createElement("div");
-
-        card.className = "vehicle-card";
-
-        card.innerHTML = `
-            <h3>${vehicle.vehicle_name}</h3>
-
-            <p>
-                <strong>Owner:</strong>
-                ${vehicle.owner_name}
-            </p>
-
-            <p>
-                <strong>📍 Location:</strong>
-                ${vehicle.location}
-            </p>
-
-            <p>
-                <strong>Registration:</strong>
-                ${vehicle.registration_no}
-            </p>
-
-            <p>
-                <strong>Model Year:</strong>
-                ${vehicle.model_year}
-            </p>
-
-            <p>
-                <strong>💰 Price:</strong>
-                ₹${vehicle.price_per_day} / day
-            </p>
-
-            <p>
-                <strong>🛠 Condition:</strong>
-                ${vehicle.condition_description}
-            </p>
-
-            <p>
-                <strong>Status:</strong>
-                ${vehicle.availability_status}
-            </p>
-
-            <button class="book-button">
-                Request to Book
-            </button>
-
-            <div class="booking-form" style="display: none;">
-
-                <label>Customer</label>
-
-                <select class="customer-select">
-                    <option value="1">Rahul Kumar</option>
-                </select>
-
-                <label>Start Date</label>
-
-                <input
-                    type="date"
-                    class="start-date"
-                >
-
-                <label>End Date</label>
-
-                <input
-                    type="date"
-                    class="end-date"
-                >
-
-                <button class="calculate-price-button">
-    Calculate Total
-</button>
-
-<p class="total-price"></p>
-
-<button class="confirm-booking-button" style="display: none;">
-    Confirm Booking
-</button>
-
-<p class="booking-message"></p>
-
-            </div>
-        `;
-
-        container.appendChild(card);
-
-        // Request to Book button
-        const bookButton =
-            card.querySelector(".book-button");
-
-        const bookingForm =
-            card.querySelector(".booking-form");
-
-        bookButton.addEventListener("click", () => {
-
-            bookingForm.style.display = "block";
-
-            bookButton.style.display = "none";
-
-        });
-
-
-        // Confirm booking
-// Calculate total price
-const calculateButton =
-    card.querySelector(".calculate-price-button");
-
-const totalPrice =
-    card.querySelector(".total-price");
-
-const confirmButton =
-    card.querySelector(".confirm-booking-button");
-
-
-calculateButton.addEventListener("click", () => {
-
-    const startDate =
-        card.querySelector(".start-date").value;
-
-    const endDate =
-        card.querySelector(".end-date").value;
-
-
-    if (!startDate || !endDate) {
-
-        totalPrice.textContent =
-            "Please select both dates.";
-
-        return;
-    }
-
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    const difference =
-        end - start;
-
-    const days =
-        difference / (1000 * 60 * 60 * 24);
-
-
-    if (days <= 0) {
-
-        totalPrice.textContent =
-            "End date must be after start date.";
-
-        return;
-    }
-
-
-    const total =
-        days * vehicle.price_per_day;
-
-
-    totalPrice.textContent =
-        "Total Price: ₹" + total;
-
-
-    confirmButton.style.display = "block";
-
-});
-
-
-// Confirm booking
-confirmButton.addEventListener("click", () => {
-
-    const customerId =
-        card.querySelector(".customer-select").value;
-
-    const startDate =
-        card.querySelector(".start-date").value;
-
-    const endDate =
-        card.querySelector(".end-date").value;
-
-    const message =
-        card.querySelector(".booking-message");
-
-
-    if (!customerId) {
-
-        message.textContent =
-            "Please select a customer.";
-
-        return;
-    }
-
-
-    fetch("http://127.0.0.1:5000/bookings", {
-
-        method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-
-            customer_id:
-                parseInt(customerId),
-
-            vehicle_id:
-                vehicle.vehicle_id,
-
-            start_date:
-                startDate,
-
-            end_date:
-                endDate
-
-        })
-
-    })
-
-    .then(response => response.json())
-
-    .then(result => {
-
-        if (result.error) {
-
-            message.textContent =
-                "Error: " + result.error;
-
-        } else {
-
-            message.textContent =
-                "Booking successful! Booking ID: "
-                + result.booking_id
-                + " | Total: ₹"
-                + result.total_amount;
-
-            confirmButton.style.display = "none";
-
-        }
-
-    })
-
-        .catch(error => {
-
-        console.error(error);
-
-        message.textContent =
-            "Unable to create booking.";
-
-    });
-
-}); // closes confirmButton.addEventListener
-
-}); // closes vehicles.forEach
-
-} // closes displayVehicles
-
-
-// Search by location
-searchButton.addEventListener("click", () => {
-
-    const location = searchInput.value.trim().toLowerCase();
-
-    if (location === "") {
-        displayVehicles(allVehicles);
-        return;
-    }
-
-    const filteredVehicles = allVehicles.filter(vehicle =>
-        vehicle.location.toLowerCase().includes(location)
-    );
-
-    displayVehicles(filteredVehicles);
-});
-
-
-// Show all vehicles
-showAllButton.addEventListener("click", () => {
-
-    searchInput.value = "";
-
-    displayVehicles(allVehicles);
-    });
-    
+ container.innerHTML = "";
+ if (!vehicles.length) { container.innerHTML = '<p class="notice">No approved vehicles are available for this search yet. Try another location or check back soon.</p>'; return; }
+ vehicles.forEach(vehicle => {
+  const card = document.createElement("article"); card.className = "vehicle-card";
+  const content = document.createElement("div"); content.className = "vehicle-content";
+  const photo = document.createElement("div"); photo.className = "vehicle-photo"; photo.setAttribute("aria-hidden", "true"); photo.textContent = "🚘";
+  const title = document.createElement("h3"); title.textContent = vehicle.vehicle_name || "Available vehicle";
+  const price = document.createElement("p"); price.className = "vehicle-price"; price.textContent = `₹${vehicle.price_per_day} / day`;
+  const details = document.createElement("p"); details.className = "vehicle-meta"; details.textContent = `⌖ ${vehicle.location || "Location not specified"}`;
+  const year = document.createElement("p"); year.className = "vehicle-meta"; year.textContent = `Model year: ${vehicle.model_year || "Not specified"}`;
+  const owner = document.createElement("p"); owner.className = "vehicle-meta"; owner.textContent = `Shared by ${vehicle.owner_name || "vehicle owner"}`;
+  const bookButton = document.createElement("button"); bookButton.textContent = "Choose dates";
+  const form = document.createElement("div"); form.className = "booking-form"; form.hidden = true;
+  form.innerHTML = '<div><label>Pick-up date</label><input type="date" class="start-date" required></div><div><label>Return date</label><input type="date" class="end-date" required></div><button class="calculate-price-button secondary" type="button">Calculate total</button><p class="total-price"></p><button class="confirm-booking-button" type="button" hidden>Request booking</button><p class="booking-message" role="status"></p>';
+  content.append(title, price, details, year, owner, bookButton, form); card.append(photo, content); container.append(card);
+  const start = form.querySelector(".start-date"), end = form.querySelector(".end-date"), total = form.querySelector(".total-price"), confirm = form.querySelector(".confirm-booking-button"), message = form.querySelector(".booking-message");
+  bookButton.addEventListener("click", async () => {
+   try { const r = await fetch(`${API}/customer/me`, { credentials: "include" }); if (!r.ok) { message.innerHTML = 'Please <a href="customer-auth.html"><strong>log in</strong></a> or <a href="customer-register.html"><strong>create an account</strong></a> before booking.'; form.hidden = false; bookButton.hidden = true; return; } form.hidden = false; bookButton.hidden = true; }
+   catch { message.textContent = "Unable to check your account. Please ensure the backend is running."; form.hidden = false; }
+  });
+  form.querySelector(".calculate-price-button").addEventListener("click", () => {
+   if (!start.value || !end.value) { total.textContent = "Please select both dates."; return; }
+   const days = (Date.parse(`${end.value}T00:00:00`) - Date.parse(`${start.value}T00:00:00`)) / 86400000;
+   if (!Number.isFinite(days) || days <= 0) { total.textContent = "Return date must be after pick-up date."; confirm.hidden = true; return; }
+   total.textContent = `Estimated total for ${days} day(s): ₹${days * Number(vehicle.price_per_day)}`; confirm.hidden = false;
+  });
+  confirm.addEventListener("click", async () => {
+   message.textContent = "Submitting your booking request…";
+   try { const r = await fetch(`${API}/bookings`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ vehicle_id: vehicle.vehicle_id, start_date: start.value, end_date: end.value }) }); const d = await r.json();
+    if (!r.ok) { message.textContent = d.error || "Unable to create booking."; if (r.status === 401) message.innerHTML = 'Please <a href="customer-auth.html">log in</a> before booking.'; return; }
+    message.textContent = `Request submitted. Booking #${d.booking_id} · Total ₹${d.total_amount}.`; confirm.hidden = true;
+   } catch (e) { console.error(e); message.textContent = "Unable to submit the request. Please try again."; }
+  });
+ });
+}
+document.getElementById("search-button").addEventListener("click", () => { const q = searchInput.value.trim().toLowerCase(); displayVehicles(q ? allVehicles.filter(v => String(v.location || "").toLowerCase().includes(q)) : allVehicles); });
+document.getElementById("show-all-button").addEventListener("click", () => { searchInput.value = ""; displayVehicles(allVehicles); });

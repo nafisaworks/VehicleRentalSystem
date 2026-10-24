@@ -1,0 +1,115 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Earnings</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <h1>Owner Earnings</h1>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="owner-dashboard.html">Owner Dashboard</a>
+        <a href="owner-vehicles.html">My Vehicles</a>
+    </nav>
+</header>
+
+<main>
+    <section class="dashboard">
+        <h2>Your Rental Income</h2>
+        <p class="dashboard-subtitle">
+            Income from paid bookings for your vehicles.
+        </p>
+
+        <p id="message" role="status">Loading earnings...</p>
+
+        <div class="dashboard-grid" id="earnings" hidden>
+            <div class="dashboard-card">
+                <h3>Total Earnings</h3>
+                <p id="total">₹0</p>
+            </div>
+            <div class="dashboard-card">
+                <h3>Paid Transactions</h3>
+                <p id="count">0</p>
+            </div>
+        </div>
+
+        <h3>Payment History</h3>
+        <div id="history" style="display: grid; grid-template-columns: 1fr; gap: 16px;"></div>
+    </section>
+</main>
+
+<script>
+const API = "http://127.0.0.1:5000";
+
+async function loadEarnings() {
+    const message = document.getElementById("message");
+
+    try {
+        const response = await fetch(`${API}/owner-earnings`, {
+            credentials: "include"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            message.textContent = data.error || "Unable to load earnings.";
+            return;
+        }
+
+        document.getElementById("total").textContent =
+            `₹${Number(data.total_earnings || 0).toLocaleString("en-IN")}`;
+
+        document.getElementById("count").textContent =
+            data.paid_transactions ?? 0;
+
+        document.getElementById("earnings").hidden = false;
+        message.textContent = "";
+
+        const history = document.getElementById("history");
+
+        if (!Array.isArray(data.payments) || data.payments.length === 0) {
+            history.textContent = "No paid transactions yet.";
+            return;
+        }
+
+        data.payments.forEach(payment => {
+            const card = document.createElement("div");
+            card.className = "dashboard-card";
+            card.style.width = "100%";
+            card.style.maxWidth = "none";
+            card.style.boxSizing = "border-box";
+            const heading = document.createElement("h3");
+            heading.textContent = payment.vehicle_name || "Vehicle rental";
+            card.appendChild(heading);
+
+            [
+                ["Booking ID", payment.booking_id],
+                ["Payment Date", payment.payment_date],
+                ["Amount", `₹${Number(payment.amount).toLocaleString("en-IN")}`],
+                ["Method", payment.payment_method],
+                ["Status", payment.payment_status]
+            ].forEach(([label, value]) => {
+                const p = document.createElement("p");
+                const strong = document.createElement("strong");
+                strong.textContent = `${label}: `;
+                p.append(strong, document.createTextNode(value ?? "—"));
+                card.appendChild(p);
+            });
+
+            history.appendChild(card);
+        });
+    } catch (error) {
+        console.error(error);
+        message.textContent =
+            "Could not connect to the backend. Check that Flask is running.";
+    }
+}
+
+loadEarnings();
+</script>
+</body>
+</html>

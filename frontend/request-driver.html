@@ -70,7 +70,7 @@
 
 <script>
 
-const customerId = 1;
+let customerId = null;
 
 const bookingSelect =
     document.getElementById("booking-select");
@@ -83,53 +83,54 @@ const requestMessage =
 
 
 // --------------------------------------------------
-// LOAD CUSTOMER BOOKINGS
+// LOAD THE AUTHENTICATED CUSTOMER AND THEIR BOOKINGS
 // --------------------------------------------------
 
-fetch(
-    "http://127.0.0.1:5000/customer-bookings/"
-    + customerId
-)
+async function loadCustomerBookings() {
+    try {
+        const meResponse = await fetch(
+            "http://127.0.0.1:5000/customer/me",
+            { credentials: "include" }
+        );
+        if (!meResponse.ok) {
+            bookingSelect.innerHTML =
+                '<option value="">Please log in first</option>';
+            requestMessage.innerHTML =
+                'Please <a href="customer-auth.html">log in</a> to request a driver.';
+            return;
+        }
 
-.then(response => response.json())
+        const customer = await meResponse.json();
+        customerId = customer.customer_id;
 
-.then(bookings => {
+        const response = await fetch(
+            "http://127.0.0.1:5000/my-bookings",
+            { credentials: "include" }
+        );
+        const bookings = await response.json();
+        if (!response.ok) {
+            throw new Error(bookings.error || "Unable to load bookings");
+        }
 
-    bookingSelect.innerHTML =
-        '<option value="">Select a booking</option>';
-
-    bookings.forEach(booking => {
-
-        const option =
-            document.createElement("option");
-
-        option.value = booking.booking_id;
-
-        option.textContent =
-            "Booking #" +
-            booking.booking_id +
-            " - " +
-            booking.vehicle_name +
-            " (" +
-            booking.start_date +
-            " to " +
-            booking.end_date +
-            ")";
-
-        bookingSelect.appendChild(option);
-
-    });
-
-})
-
-.catch(error => {
-
-    console.error(error);
-
-    bookingSelect.innerHTML =
-        '<option value="">Unable to load bookings</option>';
-
-});
+        bookingSelect.innerHTML =
+            '<option value="">Select a booking</option>';
+        bookings.forEach(booking => {
+            const option = document.createElement("option");
+            option.value = booking.booking_id;
+            option.textContent =
+                "Booking #" + booking.booking_id + " - " +
+                booking.vehicle_name + " (" + booking.start_date +
+                " to " + booking.end_date + ")";
+            bookingSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error(error);
+        bookingSelect.innerHTML =
+            '<option value="">Unable to load bookings</option>';
+        requestMessage.textContent = "Unable to load your bookings.";
+    }
+}
+loadCustomerBookings();
 bookingSelect.addEventListener("change", () => {
 
     const selectedBookingId =
@@ -146,8 +147,8 @@ bookingSelect.addEventListener("change", () => {
 
 
     fetch(
-        "http://127.0.0.1:5000/customer-bookings/"
-        + customerId
+        "http://127.0.0.1:5000/my-bookings",
+        { credentials: "include" }
     )
 
     .then(response => response.json())
@@ -190,7 +191,8 @@ function loadDrivers(location) {
 
     fetch(
         "http://127.0.0.1:5000/drivers?location="
-        + encodeURIComponent(location)
+        + encodeURIComponent(location),
+        { credentials: "include" }
     )
 
     .then(response => response.json())
@@ -282,6 +284,7 @@ function loadDrivers(location) {
                         "http://127.0.0.1:5000/driver-requests",
                         {
                             method: "POST",
+                            credentials: "include",
 
                             headers: {
                                 "Content-Type":

@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Vehicle Rental System</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="owner-register.html">Register</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="dashboard">
+            <h2>Owner Login</h2>
+            <p>Log in to manage your vehicles and rental requests.</p>
+
+            <form id="loginForm">
+                <label for="email">Email</label>
+                <input type="email" id="email" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+
+                <button type="submit" id="loginButton">Log In</button>
+            </form>
+
+            <p id="message" role="status"></p>
+            <p>New owner? <a href="owner-register.html">Create an account</a></p>
+        </section>
+    </main>
+
+    <script>
+        const API = "http://127.0.0.1:5000";
+
+        document.getElementById("loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const button = document.getElementById("loginButton");
+            const message = document.getElementById("message");
+
+            button.disabled = true;
+            button.textContent = "Logging in...";
+            message.textContent = "";
+
+            try {
+                const response = await fetch(`${API}/owner/login`, {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById("email").value.trim(),
+                        password: document.getElementById("password").value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    message.textContent = data.error || "Login failed.";
+                    return;
+                }
+
+                window.location.href = "owner-dashboard.html";
+            } catch (error) {
+                console.error(error);
+                message.textContent = "Could not connect to the server. Check that Flask is running.";
+            } finally {
+                button.disabled = false;
+                button.textContent = "Log In";
+            }
+        });
+    </script>
+</body>
+</html>

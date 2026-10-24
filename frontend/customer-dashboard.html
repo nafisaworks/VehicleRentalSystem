@@ -18,13 +18,13 @@
 
 <header>
 
-    <h1>Customer Dashboard</h1>
+    <h1>Peer2Rent</h1>
 
     <nav>
         <a href="index.html">Home</a>
-        <a href="customer-dashboard.html">Customer</a>
-        <a href="owner-dashboard.html">Owner</a>
-        <a href="driver-dashboard.html">Driver</a>
+        <a href="vehicles.html">Browse Vehicles</a>
+        <a href="customer-bookings.html">My Bookings</a>
+        <a href="customer-dashboard.html" class="active">My Account</a>
     </nav>
 
 </header>
@@ -34,14 +34,21 @@
 
     <section class="dashboard">
 
-        <h2>Welcome, Customer</h2>
+        <h2 id="welcome-heading">Welcome, Customer</h2>
 
-        <p class="dashboard-subtitle">
-            Find vehicles, manage your bookings and request independent drivers.
+        <p class="dashboard-subtitle" id="account-status">
+            Log in or create an account to book vehicles and manage your bookings.
+        </p>
+        <p>
+            <span id="customer-auth-links">
+    <a href="customer-auth.html">Log in</a> ·
+    <a href="customer-register.html">Create account</a>
+</span>
+            <button id="customer-logout" type="button" style="display:none;">Log Out</button>
         </p>
 
 
-        <div class="dashboard-grid">
+        <div class="feature-grid">
 
 
             <!-- Browse Vehicles -->
@@ -79,46 +86,203 @@
             </div>
 
 
-            <!-- Request Driver -->
-
-            <div class="dashboard-card">
-
-                <h3>👨‍✈️ Request a Driver</h3>
-
-                <p>
-                    Find an independent driver for your vehicle rental.
-                </p>
-
-                <a href="request-driver.html">
-    <button>Find Driver</button>
-</a>
-
-            </div>
-
 
             <!-- Payments -->
-
-            <div class="dashboard-card">
-
-                <h3>💳 Payments</h3>
-
-                <p>
-                    View your booking amounts and payment status.
-                </p>
-
-                <button>
-                    Payments
-                </button>
-
-            </div>
+<div class="dashboard-card">
+    <h3>💳 Payments</h3>
+    <p>View your booking amounts and payment status.</p>
+    <a href="payments.html">
+        <button type="button">View Payments</button>
+    </a>
+</div>
 
 
+        </div>
+
+        <!-- My Driving Licence -->
+        <div class="dashboard-card" style="grid-column: 1 / -1;">
+            <h3>🪪 My Driving Licence</h3>
+
+            <p id="license-status">
+                Save your driving licence details before requesting a vehicle booking.
+            </p>
+
+            <form id="license-form">
+                <label for="license-number">Licence Number</label>
+                <input id="license-number" name="license_number"
+                       type="text" maxlength="50" required>
+
+                <label for="license-authority">Issuing Authority / State</label>
+                <input id="license-authority" name="issuing_authority"
+                       type="text" maxlength="100" required>
+
+                <label for="license-issue-date">Issue Date</label>
+                <input id="license-issue-date" name="issue_date"
+                       type="date" required>
+
+                <label for="license-expiry-date">Expiry Date</label>
+                <input id="license-expiry-date" name="expiry_date"
+                       type="date" required>
+
+                <label for="license-class">Licence Class</label>
+                <input id="license-class" name="license_class"
+                       type="text" maxlength="50"
+                       placeholder="e.g. LMV" required>
+
+                <button type="submit">Save Licence Details</button>
+            </form>
+
+            <p style="font-size: 0.9em;">
+                Your driving licence details are saved to your account.
+            </p>
         </div>
 
     </section>
 
 </main>
 
-</body>
 
+<script>
+    const authLinks = document.getElementById("customer-auth-links");
+const API = "http://127.0.0.1:5000";
+const heading = document.getElementById("welcome-heading");
+const statusText = document.getElementById("account-status");
+const logout = document.getElementById("customer-logout");
+
+(async () => {
+    try {
+        const response = await fetch(`${API}/customer/me`, {
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            heading.textContent = "Welcome to Peer2Rent";
+            statusText.textContent =
+                "You are not logged in. Sign in to manage your bookings.";
+            return;
+        }
+
+        const customer = await response.json();
+        heading.textContent =
+            `Welcome, ${customer.customer_name || "Customer"}`;
+        statusText.textContent =
+            "You are signed in. Your bookings and account are ready.";
+        logout.style.display = "inline-block";
+        authLinks.style.display = "none";
+    } catch (error) {
+        statusText.textContent =
+            "Unable to connect to the server. Please check that Flask is running.";
+    }
+})();
+
+const licenseForm = document.getElementById("license-form");
+const licenseStatus = document.getElementById("license-status");
+
+function setLicenseFields(license) {
+    document.getElementById("license-number").value =
+        license.license_number || "";
+    document.getElementById("license-authority").value =
+        license.issuing_authority || "";
+    document.getElementById("license-issue-date").value =
+        license.issue_date || "";
+    document.getElementById("license-expiry-date").value =
+        license.expiry_date || "";
+    document.getElementById("license-class").value =
+        license.license_class || "";
+}
+
+async function loadLicense() {
+    try {
+        const response = await fetch(`${API}/customer/license`, {
+            credentials: "include"
+        });
+
+        if (response.status === 401) {
+            licenseStatus.textContent =
+                "Log in to add or view your licence details.";
+            licenseForm.hidden = true;
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Could not load licence details.");
+        }
+
+        licenseForm.hidden = false;
+
+        if (data.license) {
+            setLicenseFields(data.license);
+            licenseStatus.textContent =
+    "Your saved driving licence details are ready.";
+        } else {
+            licenseStatus.textContent =
+                "No licence details saved yet.";
+        }
+    } catch (error) {
+        licenseStatus.textContent = error.message;
+    }
+}
+
+licenseForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const payload = {
+        license_number: document.getElementById("license-number").value.trim(),
+        issuing_authority: document.getElementById("license-authority").value.trim(),
+        issue_date: document.getElementById("license-issue-date").value,
+        expiry_date: document.getElementById("license-expiry-date").value,
+        license_class: document.getElementById("license-class").value.trim()
+    };
+
+    licenseStatus.textContent = "Saving licence details...";
+
+    try {
+        const response = await fetch(`${API}/customer/license`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Could not save licence details.");
+        }
+
+        licenseStatus.textContent =
+            `${data.message} ${data.note || ""}`;
+    } catch (error) {
+        licenseStatus.textContent = error.message;
+    }
+});
+
+licenseForm.hidden = true;
+loadLicense();
+
+logout.addEventListener("click", async () => {
+    logout.disabled = true;
+
+    try {
+        const response = await fetch(`${API}/customer/logout`, {
+            method: "POST",
+            credentials: "include"
+        });
+
+        if (response.ok) {
+            window.location.href = "customer-auth.html";
+        } else {
+            statusText.textContent = "Could not log out. Please try again.";
+            logout.disabled = false;
+        }
+    } catch (error) {
+        statusText.textContent =
+            "Unable to connect to the server. Please try again.";
+        logout.disabled = false;
+    }
+});
+</script>
+</body>
 </html>

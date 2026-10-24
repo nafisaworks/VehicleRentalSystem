@@ -1,140 +1,79 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>My Bookings</title>
-
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
 <header>
-    <h1>My Bookings</h1>
-
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="customer-dashboard.html">Customer</a>
-        <a href="owner-dashboard.html">Owner</a>
-        <a href="driver-dashboard.html">Driver</a>
-    </nav>
+  <h1>My Bookings</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="customer-dashboard.html">Customer</a>
+    <a href="vehicles.html">Browse Vehicles</a>
+  </nav>
 </header>
-
-
 <main>
-
-<section class="dashboard">
-
+  <section class="dashboard">
     <h2>My Bookings</h2>
-
-    <p class="dashboard-subtitle">
-        View your current and previous vehicle bookings.
-    </p>
-
-    <div id="booking-container">
-        <p>Loading bookings...</p>
-    </div>
-
-</section>
-
+    <p class="dashboard-subtitle">View your current and previous vehicle bookings.</p>
+    <div id="booking-container"><p>Loading bookings...</p></div>
+  </section>
 </main>
-
-
 <script>
+const API = "http://127.0.0.1:5000";
+const bookingContainer = document.getElementById("booking-container");
 
-const bookingContainer =
-    document.getElementById("booking-container");
-
-const customerId = 1;
-
-
-// Get bookings for customer
-fetch("http://127.0.0.1:5000/customer-bookings/" + customerId)
-
-    .then(response => response.json())
-
-    .then(bookings => {
-
-        bookingContainer.innerHTML = "";
-
-        if (bookings.length === 0) {
-
-            bookingContainer.innerHTML =
-                "<p>You have no bookings yet.</p>";
-
-            return;
-        }
-
-
-        bookings.forEach(booking => {
-
-            const card =
-                document.createElement("div");
-
-            card.className = "dashboard-card";
-
-
-            card.innerHTML = `
-
-                <h3>🚘 ${booking.vehicle_name}</h3>
-
-                <p>
-                    <strong>Booking ID:</strong>
-                    ${booking.booking_id}
-                </p>
-
-                <p>
-                    <strong>Registration:</strong>
-                    ${booking.registration_no}
-                </p>
-
-                <p>
-                    <strong>📍 Location:</strong>
-                    ${booking.location}
-                </p>
-
-                <p>
-                    <strong>📅 Start Date:</strong>
-                    ${booking.start_date}
-                </p>
-
-                <p>
-                    <strong>📅 End Date:</strong>
-                    ${booking.end_date}
-                </p>
-
-                <p>
-                    <strong>💰 Total Amount:</strong>
-                    ₹${booking.total_amount}
-                </p>
-
-                <p>
-                    <strong>Status:</strong>
-                    ${booking.booking_status}
-                </p>
-
-            `;
-
-            bookingContainer.appendChild(card);
-
-        });
-
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-        bookingContainer.innerHTML =
-            "<p>Unable to load bookings.</p>";
-
+async function loadBookings() {
+  try {
+    const response = await fetch(`${API}/my-bookings`, { credentials: "include" });
+    const result = await response.json();
+    if (response.status === 401) {
+      bookingContainer.innerHTML = 'Please <a href="customer-auth.html">log in</a> to view your bookings.';
+      return;
+    }
+    if (!response.ok) {
+      bookingContainer.textContent = result.error || "Unable to load bookings.";
+      return;
+    }
+    bookingContainer.innerHTML = "";
+    if (result.length === 0) {
+      bookingContainer.innerHTML = "<p>You have no bookings yet.</p>";
+      return;
+    }
+    result.forEach(booking => {
+      const card = document.createElement("div");
+      card.className = "dashboard-card";
+      const title = document.createElement("h3");
+      title.textContent = "🚘 " + booking.vehicle_name;
+      card.appendChild(title);
+      const details = [
+        ["Booking ID", booking.booking_id],
+        ["Registration", booking.registration_no],
+        ["Location", booking.location],
+        ["Start Date", booking.start_date],
+        ["End Date", booking.end_date],
+        ["Total Amount", "₹" + booking.total_amount],
+        ["Status", booking.booking_status]
+      ];
+      details.forEach(([label, value]) => {
+        const p = document.createElement("p");
+        const strong = document.createElement("strong");
+        strong.textContent = label + ": ";
+        p.appendChild(strong);
+        p.appendChild(document.createTextNode(String(value ?? "")));
+        card.appendChild(p);
+      });
+      bookingContainer.appendChild(card);
     });
-
+  } catch (error) {
+    console.error(error);
+    bookingContainer.textContent = "Unable to load bookings. Please check the backend.";
+  }
+}
+loadBookings();
 </script>
-
 </body>
-
 </html>

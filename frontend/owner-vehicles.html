@@ -1,219 +1,103 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>My Vehicles</title>
-
     <link rel="stylesheet" href="style.css">
-
 </head>
-
-
 <body>
-
 <header>
-
     <h1>My Vehicles</h1>
-
     <nav>
         <a href="index.html">Home</a>
         <a href="customer-dashboard.html">Customer</a>
         <a href="owner-dashboard.html">Owner</a>
-        <a href="driver-dashboard.html">Driver</a>
     </nav>
-
 </header>
 
-
 <main>
-
     <section class="dashboard">
-
         <h2>My Listed Vehicles</h2>
-
         <p class="dashboard-subtitle">
-            View the vehicles listed by the selected owner.
+            View the vehicles listed under your owner account.
         </p>
-
-
-        <!-- Owner Selection -->
-
-        <div class="owner-selector">
-
-            <label for="owner-select">
-                Select Owner
-            </label>
-
-            <select id="owner-select">
-
-                <option value="">
-                    Select an owner
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- Vehicles -->
-
-        <div id="owner-vehicle-container" class="vehicle-grid">
-
-        </div>
-
-
+        <p id="status" role="status">Loading your vehicles...</p>
+        <div id="owner-vehicle-container" class="vehicle-grid"></div>
     </section>
-
 </main>
 
-
 <script>
+const API = "http://127.0.0.1:5000";
+const vehicleContainer = document.getElementById("owner-vehicle-container");
+const status = document.getElementById("status");
 
-const ownerSelect =
-    document.getElementById("owner-select");
-
-const vehicleContainer =
-    document.getElementById("owner-vehicle-container");
-
-
-// Load owners
-
-fetch("http://127.0.0.1:5000/owners")
-
-    .then(response => response.json())
-
-    .then(owners => {
-
-        owners.forEach(owner => {
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                owner.owner_id;
-
-            option.textContent =
-                owner.owner_name;
-
-            ownerSelect.appendChild(option);
-
+async function loadMyVehicles() {
+    try {
+        const response = await fetch(`${API}/owner-vehicles`, {
+            credentials: "include"
         });
 
-    })
+        const data = await response.json();
 
-    .catch(error => {
+        if (!response.ok) {
+            status.textContent = data.error || "Please log in with your owner account.";
+            return;
+        }
 
-        console.error(error);
+        if (!Array.isArray(data) || data.length === 0) {
+            status.textContent = "You haven't listed any vehicles yet.";
+            return;
+        }
 
-    });
+        status.textContent = "";
 
+        data.forEach(vehicle => {
+            const card = document.createElement("div");
+            card.className = "vehicle-card";
 
-// When owner is selected
+            const details = [
+                ["Registration", vehicle.registration_no],
+                ["Location", vehicle.location],
+                ["Price per day", `₹${vehicle.price_per_day}`],
+                ["Model Year", vehicle.model_year],
+                ["Condition", vehicle.condition_description],
+                ["Availability", vehicle.availability_status],
+                ["Listing Verification", vehicle.verification_status || "Pending"],
+                ["Commercial Eligibility", vehicle.commercial_eligibility_status || "Pending"],
+                ["Commercial Use Declared", vehicle.commercial_use_declared ? "Yes" : "No"],
+                ["Permit Number", vehicle.permit_number],
+                ["Permit Expiry", vehicle.permit_expiry_date],
+                ["Insurance Expiry", vehicle.insurance_expiry_date]
+            ];
 
-ownerSelect.addEventListener("change", () => {
+            const heading = document.createElement("h3");
+            heading.textContent = vehicle.vehicle_name;
+            card.appendChild(heading);
 
-    const ownerId =
-        ownerSelect.value;
-
-
-    if (!ownerId) {
-
-        vehicleContainer.innerHTML = "";
-
-        return;
-
-    }
-
-
-    fetch(
-        "http://127.0.0.1:5000/owner-vehicles/"
-        + ownerId
-    )
-
-        .then(response => response.json())
-
-        .then(vehicles => {
-
-            vehicleContainer.innerHTML = "";
-
-
-            if (vehicles.length === 0) {
-
-                vehicleContainer.innerHTML =
-                    "<p>No vehicles listed by this owner.</p>";
-
-                return;
-
-            }
-
-
-            vehicles.forEach(vehicle => {
-
-                const card =
-                    document.createElement("div");
-
-                card.className =
-                    "vehicle-card";
-
-
-                card.innerHTML = `
-
-                    <h3>
-                        ${vehicle.vehicle_name}
-                    </h3>
-
-                    <p>
-                        <strong>📍 Location:</strong>
-                        ${vehicle.location}
-                    </p>
-
-                    <p>
-                        <strong>💰 Price:</strong>
-                        ₹${vehicle.price_per_day} / day
-                    </p>
-
-                    <p>
-                        <strong>Model Year:</strong>
-                        ${vehicle.model_year}
-                    </p>
-
-                    <p>
-                        <strong>🛠 Condition:</strong>
-                        ${vehicle.condition_description}
-                    </p>
-
-                    <p>
-                        <strong>Status:</strong>
-                        ${vehicle.availability_status}
-                    </p>
-
-                `;
-
-
-                vehicleContainer.appendChild(card);
-
+            details.forEach(([label, value]) => {
+                const p = document.createElement("p");
+                const strong = document.createElement("strong");
+                strong.textContent = `${label}: `;
+                p.append(strong, document.createTextNode(
+                    value === null || value === undefined || value === ""
+                        ? "Not provided"
+                        : String(value)
+                ));
+                card.appendChild(p);
             });
 
-        })
-
-        .catch(error => {
-
-            console.error(error);
-
-            vehicleContainer.innerHTML =
-                "<p>Unable to load vehicles.</p>";
-
+            vehicleContainer.appendChild(card);
         });
+    } catch (error) {
+        console.error("Unable to load vehicles:", error);
+        status.textContent =
+            "Unable to load vehicles. Check that the backend is running.";
+    }
+}
 
-});
-
+loadMyVehicles();
 </script>
-
 </body>
-
 </html>
